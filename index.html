@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="img-src * 'self' data: https: http:; default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;">
     <title>Distributor Order System</title>
-
+    
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -14,223 +13,270 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
     <style>
-        /* Reset and Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* Base Styles */
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
-            background: #f4f4f4;
-            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            min-height: 100vh;
         }
 
-        /* Login Page Styles */
+        /* Login Styles */
         #loginPage {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: #f8f9fa;
+            background-color: #f8f9fa;
         }
 
         .login-container {
-            background: white;
-            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            padding: 30px;
+            background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .login-container input {
             width: 100%;
-            max-width: 400px;
-        }
-
-        .login-container h2 {
-            text-align: center;
-            margin-bottom: 1.5rem;
-            color: #2c3e50;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #34495e;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.5rem;
+            padding: 12px;
+            margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 1rem;
+            font-size: 16px;
+            box-sizing: border-box;
         }
 
-        .auth-button {
+        .login-container button {
             width: 100%;
-            padding: 0.75rem;
-            background: #4CAF50;
+            padding: 12px;
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 4px;
-            font-size: 1rem;
             cursor: pointer;
-            margin-top: 1rem;
-        }
-
-        .auth-button:hover {
-            background: #45a049;
+            font-size: 16px;
+            margin-bottom: 10px;
         }
 
         .toggle-btn {
-            display: block;
-            text-align: center;
-            margin-top: 1rem;
-            color: #2196F3;
-            cursor: pointer;
+            background: none !important;
+            color: #0056b3 !important;
             text-decoration: underline;
         }
 
         /* Main App Styles */
         #mainApp {
             display: none;
-            min-height: 100vh;
         }
 
         .header {
-            background: #fff;
-            padding: 1rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
         }
 
         .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
         }
 
         .main-layout {
             display: flex;
-            max-width: 1200px;
-            margin: 20px auto;
-            gap: 20px;
-            padding: 0 20px;
+            height: calc(100vh - 60px);
         }
 
         .left-panel {
             width: 300px;
-            flex-shrink: 0;
+            background-color: white;
+            padding: 20px;
+            overflow-y: auto;
         }
 
         .right-panel {
             flex-grow: 1;
-            background: white;
-            border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
         }
 
-        /* Stamp Section Styles */
-        .stamp-section {
+        /* Additional styles will be added in the next part */
+    </style>
+</head>
+<body>
+    <!-- Shortcuts Modal -->
+    <div id="shortcutsModal" class="shortcuts-modal" style="display: none;">
+        <h2>Keyboard Shortcuts</h2>
+        <ul class="shortcuts-list">
+            <li><kbd>F1</kbd> Show/Hide Shortcuts</li>
+            <li><kbd>Ctrl + N</kbd> Add New Order Form</li>
+            <li><kbd>Ctrl + S</kbd> Save Current Order</li>
+            <li><kbd>Ctrl + P</kbd> Generate PNG</li>
+            <li><kbd>Ctrl + D</kbd> Delete Current Row</li>
+            <li><kbd>Ctrl + A</kbd> Add New Row</li>
+            <li><kbd>Esc</kbd> Close Modal</li>
+        </ul>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage">
+        <div class="login-container">
+            <h1 style="text-align: center; margin-bottom: 30px;">Distributor Order System</h1>
+            <div id="loginForm">
+                <div style="margin-bottom: 20px;">
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button id="authButton" onclick="handleAuth()">Login</button>
+                <button class="toggle-btn" onclick="toggleForm()">
+                    New user? Register here
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Main Application -->
+    <div id="mainApp">
+        <div class="header">
+            <div class="header-content">
+                <h1>Distributor Order System</h1>
+                <div class="user-info">
+                    <span id="userEmail"></span>
+                    <button class="btn-danger" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Stamp Management Section -->
+                <div class="stamp-section">
+                    <h3>Manage Your Stamp</h3>
+                    <p>Upload your stamp once and it will be used for all orders</p>
+                    <div id="stampUploadArea">
+                        <input type="file" id="stampUpload" accept="image/*">
+                        <button onclick="uploadStamp()">Upload Stamp</button>
+                    </div>
+                    <div id="stampPreview" class="hidden">
+                        <img id="currentStamp" class="stamp-preview" alt="Your Stamp">
+                        <button class="btn-danger" onclick="removeStamp()">Remove Stamp</button>
+                    </div>
+                </div>
+
+                <!-- Column Manager -->
+                <div class="column-manager">
+                    <h3>Manage Columns</h3>
+                    <div id="columnList"></div>
+                    <button onclick="addNewColumn()" class="action-btn">Add New Column</button>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="recent-orders">
+                    <h3>Recent Orders</h3>
+                    <div id="recentOrders"></div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <div class="tabs-container">
+                    <button class="tab-button active" onclick="showTab('orders')">Orders</button>
+                    <button class="tab-button" onclick="showTab('history')">Order History</button>
+                </div>
+
+                <!-- Orders Tab -->
+                <div id="ordersTab" class="tab-content active">
+                    <div id="orderTabs" class="order-tabs-container"></div>
+                    <div id="orderForms"></div>
+                </div>
+
+                <!-- History Tab -->
+                <div id="historyTab" class="tab-content">
+                    <div id="fullOrderHistory"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Additional Styles */
+        .shortcuts-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
         }
 
-        .stamp-preview {
-            margin-top: 10px;
-            text-align: center;
+        .shortcuts-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
-        .stamp-preview img {
-            max-width: 200px;
-            max-height: 100px;
-            margin-bottom: 10px;
-        }
-
-        /* Column Manager Styles */
-        .column-manager {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .column-item {
+        .shortcuts-list li {
+            margin: 10px 0;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 8px;
-            border-bottom: 1px solid #eee;
+            gap: 10px;
         }
 
-        /* Recent Orders Styles */
-        .recent-orders {
+        kbd {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+
+        .order-tabs-container {
+            display: flex;
+            overflow-x: auto;
+            padding: 10px;
             background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 8px 8px 0 0;
+            gap: 5px;
         }
 
-        .history-item {
+        .order-tab {
+            padding: 8px 15px;
+            background: #f0f0f0;
             border: 1px solid #ddd;
             border-radius: 4px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .history-thumbnail {
-            max-width: 100px;
-            height: auto;
-            margin: 10px 0;
-        }
-
-        /* Tabs Styles */
-        .tabs-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .tab-button {
-            padding: 8px 16px;
-            border: none;
-            background: #f0f0f0;
-            border-radius: 4px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .tab-button.active {
+        .order-tab.active {
             background: #4CAF50;
             color: white;
+            border-color: #4CAF50;
         }
 
-        /* Order Form Styles */
+        .order-tab-close {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
         .order-form {
             background: white;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
 
@@ -243,7 +289,8 @@
         .order-table th,
         .order-table td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 10px;
+            text-align: left;
         }
 
         .order-table th {
@@ -252,16 +299,10 @@
 
         .order-table input {
             width: 100%;
-            padding: 4px;
+            padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
+            box-sizing: border-box;
         }
 
         .action-btn {
@@ -271,23 +312,45 @@
             cursor: pointer;
             background: #4CAF50;
             color: white;
+            margin-right: 10px;
         }
 
-        .view-btn {
-            background: #2196F3;
+        .action-btn:hover {
+            background: #45a049;
         }
 
-        .share-btn {
-            background: #9c27b0;
-        }
-
-        .delete-btn {
+        .btn-danger {
             background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
-        /* Utility Classes */
-        .hidden {
-            display: none;
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .stamp-preview {
+            max-width: 200px;
+            max-height: 100px;
+            margin: 10px 0;
+        }
+
+        .history-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .history-image {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
+            border-radius: 4px;
         }
 
         .loading {
@@ -304,127 +367,41 @@
             color: #dc3545;
             margin: 10px 0;
         }
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+
+        .hidden {
+            display: none;
         }
-        
-        .modal-content {
-            background: white;
+
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column;
+            }
+
+            .left-panel {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+        }
+        .error-message {
+            background: #fff3f3;
+            border: 1px solid #dc3545;
             padding: 20px;
-            border-radius: 8px;
-            max-width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
+            border-radius: 4px;
+            text-align: center;
+            margin: 15px 0;
         }
         
-        .close {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-            font-size: 24px;
-            cursor: pointer;
+        .error-message button {
+            margin-top: 10px;
         }
         
-        .orders-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px;
+        img[crossorigin="anonymous"] {
+            max-width: 100%;
+            height: auto;
         }
         
     </style>
-</head>
-<body>
-    <!-- Login Page -->
-    <div id="loginPage">
-        <div class="login-container">
-            <h2>Distributor Order System</h2>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" required>
-            </div>
-            <button class="auth-button" onclick="handleAuth()">Login</button>
-            <span class="toggle-btn" onclick="toggleAuthMode()">Don't have an account? Sign up</span>
-        </div>
-    </div>
-
-    <!-- Main Application -->
-    <div id="mainApp">
-        <div class="header">
-            <div class="header-content">
-                <h1>Order Management</h1>
-                <div class="user-info">
-                    <span id="userEmail"></span>
-                    <button class="auth-button" onclick="logout()">Logout</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="main-layout">
-            <!-- Left Panel -->
-            <div class="left-panel">
-                <!-- Stamp Section -->
-                <div class="stamp-section">
-                    <h3>Company Stamp</h3>
-                    <div id="stampUploadArea">
-                        <input type="file" id="stampUpload" accept="image/*">
-                        <button onclick="uploadStamp()">Upload Stamp</button>
-                    </div>
-                    <div id="stampPreview" class="stamp-preview hidden">
-                        <img id="currentStamp" alt="Company Stamp">
-                        <button onclick="removeStamp()">Remove Stamp</button>
-                    </div>
-                </div>
-
-                <!-- Column Manager -->
-                <div class="column-manager">
-                    <h3>Custom Columns</h3>
-                    <div id="columnList"></div>
-                    <button onclick="addNewColumn()" class="action-btn">Add Column</button>
-                </div>
-
-                <!-- Recent Orders -->
-                <div class="recent-orders">
-                    <h3>Recent Orders</h3>
-                    <div id="recentOrders"></div>
-                </div>
-            </div>
-
-            <!-- Right Panel -->
-            <div class="right-panel">
-                <!-- Tabs -->
-                <div class="tabs-container">
-                    <button class="tab-button active" onclick="showTab('orders')">Orders</button>
-                    <button class="tab-button" onclick="showTab('history')">History</button>
-                </div>
-
-                <!-- Orders Tab -->
-                <div id="ordersTab" class="tab-content active">
-                    <div id="orderTabs" class="order-tabs"></div>
-                    <div id="orderForms"></div>
-                </div>
-
-                <!-- History Tab -->
-                <div id="historyTab" class="tab-content hidden">
-                    <div id="fullOrderHistory"></div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script>
         // Firebase Configuration
@@ -445,54 +422,238 @@
         const storage = firebase.storage();
 
         // Global Variables
+        let isLoginMode = true;
         let currentUser = null;
         let userStampUrl = null;
         let currentOrderId = 1;
         let activeOrderId = null;
         let customColumns = [];
-        let isLoginMode = true;
 
         // Authentication Functions
-        function toggleAuthMode() {
+        function toggleForm() {
             isLoginMode = !isLoginMode;
-            const authButton = document.querySelector('.auth-button');
-            const toggleButton = document.querySelector('.toggle-btn');
-            
-            if (isLoginMode) {
-                authButton.textContent = 'Login';
-                toggleButton.textContent = "Don't have an account? Sign up";
-            } else {
-                authButton.textContent = 'Sign Up';
-                toggleButton.textContent = 'Already have an account? Login';
-            }
+            const authButton = document.getElementById('authButton');
+            const toggleBtn = document.querySelector('.toggle-btn');
+            authButton.textContent = isLoginMode ? 'Login' : 'Register';
+            toggleBtn.textContent = isLoginMode ? 'New user? Register here' : 'Already have an account? Login';
         }
 
         async function handleAuth() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            if (!email || !password) {
-                alert('Please enter both email and password');
-                return;
-            }
-
             try {
+                const authButton = document.getElementById('authButton');
+                authButton.disabled = true;
+                authButton.textContent = isLoginMode ? 'Logging in...' : 'Registering...';
+
                 if (isLoginMode) {
                     await auth.signInWithEmailAndPassword(email, password);
                 } else {
                     await auth.createUserWithEmailAndPassword(email, password);
                 }
             } catch (error) {
-                console.error('Auth error:', error);
                 alert(error.message);
+            } finally {
+                const authButton = document.getElementById('authButton');
+                authButton.disabled = false;
+                authButton.textContent = isLoginMode ? 'Login' : 'Register';
             }
         }
 
         function logout() {
-            auth.signOut().catch(error => {
-                console.error('Logout error:', error);
-                alert('Error logging out. Please try again.');
+            if (confirm('Are you sure you want to logout?')) {
+                auth.signOut();
+            }
+        }
+        // Tab Management
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('onclick').includes(tabName));
             });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === `${tabName}Tab`);
+            });
+
+            if (tabName === 'history') {
+                loadFullOrderHistory();
+            }
+        }
+
+        // Column Management
+        async function addNewColumn() {
+            const columnName = prompt("Enter new column name:");
+            if (columnName && columnName.trim()) {
+                const normalizedName = columnName.trim();
+                if (!customColumns.includes(normalizedName)) {
+                    customColumns.push(normalizedName);
+                    await updateColumnList();
+                    await updateAllOrderForms();
+                    await saveCustomColumnsToFirebase();
+                } else {
+                    alert('This column already exists!');
+                }
+            }
+        }
+
+        async function saveCustomColumnsToFirebase() {
+            if (!currentUser) return;
+            try {
+                await db.collection('users').doc(currentUser.uid).set({
+                    customColumns: customColumns
+                }, { merge: true });
+            } catch (error) {
+                console.error('Error saving columns:', error);
+                alert('Error saving columns. Please try again.');
+            }
+        }
+
+        async function loadCustomColumns() {
+            if (!currentUser) return;
+            try {
+                const doc = await db.collection('users').doc(currentUser.uid).get();
+                if (doc.exists && doc.data().customColumns) {
+                    customColumns = doc.data().customColumns;
+                    await updateColumnList();
+                    await updateAllOrderForms();
+                }
+            } catch (error) {
+                console.error('Error loading columns:', error);
+            }
+        }
+
+        function updateColumnList() {
+            const columnList = document.getElementById('columnList');
+            if (!columnList) return;
+
+            columnList.innerHTML = `
+                <div class="column-item">
+                    <span>Quantity</span>
+                </div>
+                <div class="column-item">
+                    <span>Medicine Name</span>
+                </div>
+                ${customColumns.map((col, index) => `
+                    <div class="column-item">
+                        <span>${col}</span>
+                        <button onclick="removeColumn(${index})" class="btn-danger">×</button>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        async function removeColumn(index) {
+            if (confirm('Are you sure you want to remove this column? This will affect all orders.')) {
+                customColumns.splice(index, 1);
+                await updateColumnList();
+                await updateAllOrderForms();
+                await saveCustomColumnsToFirebase();
+            }
+        }
+
+        // Stamp Management
+        async function uploadStamp() {
+            const fileInput = document.getElementById('stampUpload');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file first');
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
+
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                alert('File size must be less than 5MB');
+                return;
+            }
+
+            try {
+                const uploadButton = document.querySelector('#stampUploadArea button');
+                const originalButtonText = uploadButton.textContent;
+                uploadButton.textContent = 'Uploading...';
+                uploadButton.disabled = true;
+
+                const storageRef = storage.ref(`stamps/${currentUser.uid}/stamp.png`);
+                const uploadTask = storageRef.put(file);
+
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        uploadButton.textContent = `Uploading... ${Math.round(progress)}%`;
+                    },
+                    (error) => {
+                        console.error('Error uploading stamp:', error);
+                        alert('Error uploading stamp. Please try again.');
+                        uploadButton.textContent = originalButtonText;
+                        uploadButton.disabled = false;
+                    },
+                    async () => {
+                        try {
+                            const stampUrl = await uploadTask.snapshot.ref.getDownloadURL();
+                            await db.collection('users').doc(currentUser.uid).set({
+                                stampUrl: stampUrl
+                            }, { merge: true });
+
+                            userStampUrl = stampUrl;
+                            updateStampPreview(stampUrl);
+                            alert('Stamp uploaded successfully!');
+                        } catch (error) {
+                            console.error('Error getting download URL:', error);
+                            alert('Error saving stamp. Please try again.');
+                        } finally {
+                            uploadButton.textContent = originalButtonText;
+                            uploadButton.disabled = false;
+                        }
+                    }
+                );
+            } catch (error) {
+                console.error('Error initiating upload:', error);
+                alert('Error uploading stamp. Please try again.');
+                const uploadButton = document.querySelector('#stampUploadArea button');
+                uploadButton.textContent = 'Upload Stamp';
+                uploadButton.disabled = false;
+            }
+        }
+
+        function updateStampPreview(stampUrl) {
+            const previewImg = document.getElementById('currentStamp');
+            const previewDiv = document.getElementById('stampPreview');
+            const uploadArea = document.getElementById('stampUploadArea');
+
+            if (stampUrl) {
+                previewImg.src = stampUrl;
+                previewDiv.classList.remove('hidden');
+                uploadArea.classList.add('hidden');
+            } else {
+                previewDiv.classList.add('hidden');
+                uploadArea.classList.remove('hidden');
+            }
+        }
+
+        async function removeStamp() {
+            if (!confirm('Are you sure you want to remove the stamp?')) return;
+
+            try {
+                const storageRef = storage.ref(`stamps/${currentUser.uid}/stamp.png`);
+                await storageRef.delete();
+
+                await db.collection('users').doc(currentUser.uid).update({
+                    stampUrl: firebase.firestore.FieldValue.delete()
+                });
+
+                userStampUrl = null;
+                document.getElementById('stampPreview').classList.add('hidden');
+                document.getElementById('stampUploadArea').classList.remove('hidden');
+                alert('Stamp removed successfully!');
+            } catch (error) {
+                console.error('Error removing stamp:', error);
+                alert('Error removing stamp. Please try again.');
+            }
         }
 
         // Initialize Authentication State
@@ -531,10 +692,28 @@
                 document.getElementById('mainApp').style.display = 'none';
             }
         });
-    </script>
-    <!-- Add this inside the existing <script> tag, after the auth.onAuthStateChanged function -->
-    
-    <script>
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (!currentUser) return;
+
+            if (e.key === 'F1') {
+                e.preventDefault();
+                document.getElementById('shortcutsModal').style.display = 
+                    document.getElementById('shortcutsModal').style.display === 'none' ? 'block' : 'none';
+            } else if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                addNewOrder();
+            } else if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                if (activeOrderId) generateImage(activeOrderId);
+            } else if (e.ctrlKey && e.key === 'a') {
+                e.preventDefault();
+                if (activeOrderId) addRow(activeOrderId);
+            } else if (e.key === 'Escape') {
+                document.getElementById('shortcutsModal').style.display = 'none';
+            }
+        });
         // Order Management Functions
         function addNewOrder() {
             const orderId = currentOrderId++;
@@ -542,7 +721,7 @@
             // Create tab
             const orderTabs = document.getElementById('orderTabs');
             if (!orderTabs) return;
-    
+
             const tab = document.createElement('div');
             tab.className = 'order-tab';
             tab.setAttribute('data-order-id', orderId);
@@ -552,17 +731,17 @@
             `;
             tab.onclick = () => switchOrder(orderId);
             orderTabs.appendChild(tab);
-    
+
             // Create order form
             const orderForms = document.getElementById('orderForms');
             if (!orderForms) return;
-    
+
             const form = createOrderForm(orderId);
             orderForms.appendChild(form);
-    
+
             switchOrder(orderId);
         }
-    
+
         function createOrderForm(orderId) {
             const form = document.createElement('div');
             form.className = 'order-form hidden';
@@ -590,23 +769,23 @@
                 </div>
                 <div class="generated-image"></div>
             `;
-    
+
             setTimeout(() => addRow(orderId), 0);
             return form;
         }
-    
+
         function switchOrder(orderId) {
             document.querySelectorAll('.order-tab').forEach(tab => {
                 tab.classList.toggle('active', tab.getAttribute('data-order-id') == orderId);
             });
-    
+
             document.querySelectorAll('.order-form').forEach(form => {
                 form.classList.toggle('hidden', form.id !== `order-${orderId}`);
             });
-    
+
             activeOrderId = orderId;
         }
-    
+
         function closeOrder(orderId, event) {
             event.stopPropagation();
             const tabs = document.querySelectorAll('.order-tab');
@@ -614,7 +793,7 @@
                 alert('Cannot close the last order tab');
                 return;
             }
-    
+
             const tab = document.querySelector(`.order-tab[data-order-id="${orderId}"]`);
             const form = document.getElementById(`order-${orderId}`);
             
@@ -622,7 +801,7 @@
                 const isActive = tab.classList.contains('active');
                 tab.remove();
                 form.remove();
-    
+
                 if (isActive) {
                     const remainingTabs = document.querySelectorAll('.order-tab');
                     const newOrderId = remainingTabs[0].getAttribute('data-order-id');
@@ -630,30 +809,30 @@
                 }
             }
         }
-    
+
         function addRow(orderId) {
             const form = document.getElementById(`order-${orderId}`);
             if (!form) return;
-    
+
             const tbody = form.querySelector('tbody');
             if (!tbody) return;
-    
+
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><input type="number" class="quantity-input" placeholder="Qty" min="1"></td>
+                <td><input type="text" class="quantity-input" placeholder="Qty"></td>
                 <td><input type="text" class="medicine-input" placeholder="Medicine Name"></td>
                 ${customColumns.map(() => `<td><input type="text"></td>`).join('')}
                 <td>
-                    <button onclick="deleteRow(this)" class="delete-btn">Delete</button>
+                    <button onclick="deleteRow(this)" class="btn-danger">Delete</button>
                 </td>
             `;
             tbody.appendChild(row);
-    
+
             // Focus on the new row's quantity input
             const quantityInput = row.querySelector('.quantity-input');
             quantityInput.focus();
         }
-    
+
         function deleteRow(button) {
             const tr = button.closest('tr');
             const tbody = tr.parentElement;
@@ -663,35 +842,33 @@
                 alert('Cannot delete the last row');
             }
         }
-    
+
         async function generateImage(orderId) {
             const form = document.getElementById(`order-${orderId}`);
             if (!form) return;
-    
+
             const distributorName = form.querySelector('.distributor-name').value;
             const orderDate = form.querySelector('.order-date').value;
-    
+
             if (!distributorName || !orderDate) {
                 alert('Please fill in distributor name and date');
                 return;
             }
-    
+
             try {
                 const generateButton = form.querySelector('.generate-btn');
+                const originalText = generateButton.textContent;
                 generateButton.textContent = 'Generating...';
                 generateButton.disabled = true;
-    
-                // Create print content
+
+                // Create a clean version for image generation
                 const printContent = document.createElement('div');
                 printContent.style.cssText = `
                     padding: 20px;
                     background: white;
                     font-family: Arial, sans-serif;
-                    width: 100%;
-                    max-width: 800px;
-                    margin: 0 auto;
                 `;
-    
+
                 // Add header content
                 printContent.innerHTML = `
                     <div style="margin-bottom: 20px;">
@@ -700,15 +877,15 @@
                         <p style="margin: 5px 0;"><strong>Date:</strong> ${orderDate}</p>
                     </div>
                 `;
-    
-                // Create and add table
+
+                // Create table without actions column
                 const table = document.createElement('table');
                 table.style.cssText = `
                     width: 100%;
                     border-collapse: collapse;
                     margin-bottom: 20px;
                 `;
-    
+
                 // Add table header
                 const thead = document.createElement('thead');
                 thead.innerHTML = `
@@ -721,7 +898,7 @@
                     </tr>
                 `;
                 table.appendChild(thead);
-    
+
                 // Add table body
                 const tbody = document.createElement('tbody');
                 const rows = Array.from(form.querySelectorAll('tbody tr'));
@@ -731,7 +908,7 @@
                         <tr>
                             <td style="border: 1px solid #ddd; padding: 8px;">${inputs[0].value}</td>
                             <td style="border: 1px solid #ddd; padding: 8px;">${inputs[1].value}</td>
-                            ${Array.from(inputs).slice(2).map(input => 
+                            ${Array.from(inputs).slice(2, -1).map(input => 
                                 `<td style="border: 1px solid #ddd; padding: 8px;">${input.value}</td>`
                             ).join('')}
                         </tr>
@@ -739,68 +916,45 @@
                 }).join('');
                 table.appendChild(tbody);
                 printContent.appendChild(table);
-    
+
                 // Add stamp if exists
                 if (userStampUrl) {
                     const stampContainer = document.createElement('div');
                     stampContainer.style.cssText = `
-                        width: 100%;
-                        display: flex;
-                        justify-content: flex-end;
-                        margin-top: 30px;
-                        padding-top: 20px;
-                        border-top: 1px solid #eee;
+                        text-align: right;
+                        margin-top: 20px;
                     `;
-                    
-                    const stampImg = document.createElement('img');
-                    stampImg.src = userStampUrl;
-                    stampImg.style.cssText = 'max-width: 200px; max-height: 100px;';
-                    stampImg.crossOrigin = 'anonymous';
-                    
-                    // Wait for stamp image to load
-                    await new Promise((resolve, reject) => {
-                        stampImg.onload = resolve;
-                        stampImg.onerror = reject;
-                    });
-    
-                    stampContainer.appendChild(stampImg);
+                    stampContainer.innerHTML = `
+                        <img src="${userStampUrl}" 
+                             style="max-width: 200px; max-height: 100px;" 
+                             crossorigin="anonymous">
+                    `;
                     printContent.appendChild(stampContainer);
                 }
-    
+
                 document.body.appendChild(printContent);
-    
-                // Wait for all content to render
-                await new Promise(resolve => setTimeout(resolve, 500));
-    
+
                 const canvas = await html2canvas(printContent, {
                     scale: 2,
                     logging: false,
                     useCORS: true,
-                    allowTaint: true,
-                    imageTimeout: 0,
-                    onclone: function(clonedDoc) {
-                        const images = clonedDoc.getElementsByTagName('img');
-                        for(let img of images) {
-                            img.crossOrigin = "anonymous";
-                        }
-                    }
+                    allowTaint: true
                 });
-    
+
                 const imageUrl = canvas.toDataURL('image/png');
-    
                 // Upload to Firebase Storage
                 const storageRef = storage.ref(`orders/${currentUser.uid}/${Date.now()}.png`);
                 const uploadTask = await storageRef.putString(imageUrl.split(',')[1], 'base64');
                 const downloadUrl = await uploadTask.ref.getDownloadURL();
-    
+
                 // Display generated image
                 form.querySelector('.generated-image').innerHTML = `
-                    <img src="${downloadUrl}" alt="Generated Order" style="max-width: 100%; margin-top: 20px;" crossorigin="anonymous">
+                    <img src="${downloadUrl}" alt="Generated Order" style="max-width: 100%; margin-top: 20px;">
                 `;
-    
+
                 // Save to Firebase
                 await saveOrderToFirebase(orderId, distributorName, orderDate, downloadUrl);
-    
+
             } catch (error) {
                 console.error('Error generating image:', error);
                 alert('Error generating image. Please try again.');
@@ -811,11 +965,7 @@
                 document.body.removeChild(document.body.lastChild);
             }
         }
-    </script>
-    <!-- Add this inside the existing <script> tag, after the previous functions -->
-    
-    <script>
-        // Firebase Operations
+
         async function saveOrderToFirebase(orderId, distributorName, date, imageUrl) {
             try {
                 const form = document.getElementById(`order-${orderId}`);
@@ -832,7 +982,7 @@
                     
                     return item;
                 });
-    
+
                 await db.collection('orders').add({
                     userId: currentUser.uid,
                     distributorName,
@@ -842,7 +992,7 @@
                     customColumns,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-    
+
                 await loadRecentOrders();
                 alert('Order saved successfully!');
             } catch (error) {
@@ -850,165 +1000,157 @@
                 alert('Error saving order: ' + error.message);
             }
         }
-    
-        // Stamp Management
-        async function uploadStamp() {
-            const fileInput = document.getElementById('stampUpload');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                alert('Please select a file first');
-                return;
-            }
-    
-            if (!file.type.startsWith('image/')) {
-                alert('Please select an image file');
-                return;
-            }
-    
+
+        async function loadRecentOrders() {
+            if (!currentUser) return;
+
+            const recentOrders = document.getElementById('recentOrders');
+            recentOrders.innerHTML = '<div class="loading">Loading recent orders...</div>';
+
             try {
-                const storageRef = storage.ref(`stamps/${currentUser.uid}/stamp.png`);
-                await storageRef.put(file);
-                const downloadUrl = await storageRef.getDownloadURL();
-    
-                await db.collection('users').doc(currentUser.uid).set({
-                    stampUrl: downloadUrl
-                }, { merge: true });
-    
-                userStampUrl = downloadUrl;
-                updateStampPreview(downloadUrl);
-                alert('Stamp uploaded successfully!');
-            } catch (error) {
-                console.error('Error uploading stamp:', error);
-                alert('Error uploading stamp. Please try again.');
-            }
-        }
-    
-        async function removeStamp() {
-            if (!confirm('Are you sure you want to remove the stamp?')) return;
-    
-            try {
-                const storageRef = storage.ref(`stamps/${currentUser.uid}/stamp.png`);
-                await storageRef.delete();
-    
-                await db.collection('users').doc(currentUser.uid).update({
-                    stampUrl: firebase.firestore.FieldValue.delete()
-                });
-    
-                userStampUrl = null;
-                updateStampPreview(null);
-                alert('Stamp removed successfully!');
-            } catch (error) {
-                console.error('Error removing stamp:', error);
-                alert('Error removing stamp. Please try again.');
-            }
-        }
-    
-        function updateStampPreview(url) {
-            const preview = document.getElementById('stampPreview');
-            const uploadArea = document.getElementById('stampUploadArea');
-            
-            if (url) {
-                document.getElementById('currentStamp').src = url;
-                preview.classList.remove('hidden');
-                uploadArea.classList.add('hidden');
-            } else {
-                preview.classList.add('hidden');
-                uploadArea.classList.remove('hidden');
-            }
-        }
-    
-        // Custom Columns Management
-        function addNewColumn() {
-            const columnName = prompt('Enter column name:');
-            if (!columnName) return;
-    
-            if (customColumns.includes(columnName)) {
-                alert('Column already exists');
-                return;
-            }
-    
-            customColumns.push(columnName);
-            updateColumnList();
-            saveCustomColumns();
-        }
-    
-        function removeColumn(columnName) {
-            if (!confirm(`Are you sure you want to remove the column "${columnName}"?`)) return;
-    
-            const index = customColumns.indexOf(columnName);
-            if (index > -1) {
-                customColumns.splice(index, 1);
-                updateColumnList();
-                saveCustomColumns();
-            }
-        }
-    
-        function updateColumnList() {
-            const columnList = document.getElementById('columnList');
-            columnList.innerHTML = customColumns.map(col => `
-                <div class="column-item">
-                    <span>${col}</span>
-                    <button onclick="removeColumn('${col}')" class="delete-btn">Remove</button>
-                </div>
-            `).join('');
-    
-            // Update all order forms
-            document.querySelectorAll('.order-form').forEach(form => {
-                const headerRow = form.querySelector('thead tr');
-                const rows = form.querySelectorAll('tbody tr');
-                
-                // Update header
-                headerRow.innerHTML = `
-                    <th>Quantity</th>
-                    <th>Medicine Name</th>
-                    ${customColumns.map(col => `<th>${col}</th>`).join('')}
-                    <th>Actions</th>
-                `;
-    
-                // Update rows
-                rows.forEach(row => {
-                    const cells = Array.from(row.cells);
-                    const quantity = cells[0].innerHTML;
-                    const medicine = cells[1].innerHTML;
-                    const actions = cells[cells.length - 1].innerHTML;
-    
-                    row.innerHTML = `
-                        ${quantity}
-                        ${medicine}
-                        ${customColumns.map(() => `<td><input type="text"></td>`).join('')}
-                        ${actions}
+                const snapshot = await db.collection('orders')
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('createdAt', 'desc')
+                    .limit(5)
+                    .get();
+
+                recentOrders.innerHTML = '';
+
+                if (snapshot.empty) {
+                    recentOrders.innerHTML = '<p class="no-orders">No recent orders found.</p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const order = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.innerHTML = `
+                        <div class="history-header">
+                            <strong>${order.distributorName}</strong>
+                            <span>${order.date}</span>
+                        </div>
+                        <div class="history-details">
+                            <p>Items: ${order.items.length}</p>
+                            <img src="${order.imageUrl}" class="history-thumbnail" alt="Order" loading="lazy">
+                        </div>
+                        <div class="action-buttons">
+                            <button onclick="viewOrder('${doc.id}')" class="view-btn">View</button>
+                            <button onclick="shareOnWhatsApp('${order.imageUrl}')" class="share-btn">Share</button>
+                            <button onclick="deleteOrder('${doc.id}')" class="delete-btn">Delete</button>
+                        </div>
                     `;
+                    recentOrders.appendChild(div);
                 });
-            });
-        }
-    
-        async function saveCustomColumns() {
-            try {
-                await db.collection('users').doc(currentUser.uid).set({
-                    customColumns: customColumns
-                }, { merge: true });
             } catch (error) {
-                console.error('Error saving custom columns:', error);
-                alert('Error saving custom columns. Please try again.');
+                console.error('Error loading recent orders:', error);
+                recentOrders.innerHTML = `
+                    <div class="error-message">
+                        <p>Error loading orders. Please try again.</p>
+                        <button onclick="loadRecentOrders()">Retry</button>
+                    </div>
+                `;
             }
         }
-    
-        // Tab Management
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.toggle('active', btn.getAttribute('onclick').includes(tabName));
+
+        async function loadFullOrderHistory() {
+            if (!currentUser) return;
+
+            const historyContainer = document.getElementById('fullOrderHistory');
+            historyContainer.innerHTML = '<div class="loading">Loading order history...</div>';
+
+            try {
+                const snapshot = await db.collection('orders')
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+
+                historyContainer.innerHTML = '<h2>Order History</h2>';
+
+                if (snapshot.empty) {
+                    historyContainer.innerHTML += '<p class="no-orders">No orders found.</p>';
+                    return;
+                }
+
+                const ordersGrid = document.createElement('div');
+                ordersGrid.className = 'orders-grid';
+
+                snapshot.forEach(doc => {
+                    const order = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.innerHTML = `
+                        <div class="history-header">
+                            <strong>${order.distributorName}</strong>
+                            <span>${order.date}</span>
+                        </div>
+                        <div class="history-details">
+                            <p>Items: ${order.items.length}</p>
+                            <img src="${order.imageUrl}" class="history-image" alt="Order" loading="lazy">
+                        </div>
+                        <div class="action-buttons">
+                            <button onclick="viewOrder('${doc.id}')" class="view-btn">View Full Size</button>
+                            <button onclick="shareOnWhatsApp('${order.imageUrl}')" class="share-btn">Share</button>
+                            <button onclick="deleteOrder('${doc.id}')" class="delete-btn">Delete</button>
+                        </div>
+                    `;
+                    ordersGrid.appendChild(div);
+                });
+
+                historyContainer.appendChild(ordersGrid);
+            } catch (error) {
+                console.error('Error loading order history:', error);
+                historyContainer.innerHTML = `
+                    <div class="error-message">
+                        <p>Error loading order history. Please try again.</p>
+                        <button onclick="loadFullOrderHistory()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        async function deleteOrder(orderId) {
+            if (!confirm('Are you sure you want to delete this order?')) return;
+
+            try {
+                const doc = await db.collection('orders').doc(orderId).get();
+                if (!doc.exists) {
+                    alert('Order not found');
+                    return;
+                }
+
+                const order = doc.data();
+                if (order.imageUrl) {
+                    // Delete the image from storage
+                    const imageRef = storage.refFromURL(order.imageUrl);
+                    await imageRef.delete();
+                }
+
+                // Delete the document from Firestore
+                await db.collection('orders').doc(orderId).delete();
+
+                // Refresh the orders display
+                await loadRecentOrders();
+                await loadFullOrderHistory();
+                alert('Order deleted successfully');
+            } catch (error) {
+                console.error('Error deleting order:', error);
+                alert('Error deleting order. Please try again.');
+            }
+        }
+
+        function viewOrder(orderId) {
+            db.collection('orders').doc(orderId).get().then(doc => {
+                if (doc.exists) {
+                    const order = doc.data();
+                    window.open(order.imageUrl, '_blank');
+                }
+            }).catch(error => {
+                console.error('Error viewing order:', error);
+                alert('Error viewing order. Please try again.');
             });
-    
-            document.getElementById('ordersTab').classList.toggle('hidden', tabName !== 'orders');
-            document.getElementById('historyTab').classList.toggle('hidden', tabName !== 'history');
-    
-            if (tabName === 'history') {
-                loadFullOrderHistory();
-            }
         }
-    
-        // Sharing Functions
+
         function shareOrder(orderId) {
             const form = document.getElementById(`order-${orderId}`);
             const imageUrl = form.querySelector('.generated-image img')?.src;
@@ -1019,19 +1161,19 @@
                 alert('Please generate the image first');
             }
         }
-    
+
         function shareOnWhatsApp(imageUrl) {
             const text = `Please check the order: ${imageUrl}`;
             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
         }
-    
+
         // Add floating button for new orders
         const floatingButton = document.createElement('button');
         floatingButton.className = 'floating-button';
         floatingButton.innerHTML = '+';
         floatingButton.onclick = addNewOrder;
         document.body.appendChild(floatingButton);
-    
+
         // Additional styles for floating button
         const additionalStyles = `
             .floating-button {
@@ -1053,23 +1195,46 @@
                 justify-content: center;
                 transition: transform 0.2s;
             }
-    
+
             .floating-button:hover {
                 transform: scale(1.1);
                 background: #45a049;
             }
         `;
-    
+
         const styleSheet = document.createElement("style");
         styleSheet.textContent = additionalStyles;
         document.head.appendChild(styleSheet);
-    
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', () => {
-            // Any additional initialization code can go here
-        });
-        // Add these functions in your <script> tag
+        // Update loadFullOrderHistory function's image handling
+        const ordersGrid = document.createElement('div');
+        ordersGrid.className = 'orders-grid';
         
+        snapshot.forEach(doc => {
+            const order = doc.data();
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <div class="history-header">
+                    <strong>${order.distributorName}</strong>
+                    <span>${order.date}</span>
+                </div>
+                <div class="history-details">
+                    <p>Items: ${order.items.length}</p>
+                    <img src="${order.imageUrl}" 
+                         class="history-image" 
+                         alt="Order" 
+                         loading="lazy" 
+                         crossorigin="anonymous"
+                         onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22>Image Error</text></svg>'">
+                </div>
+                <div class="action-buttons">
+                    <button onclick="viewOrder('${doc.id}')" class="view-btn">View Full Size</button>
+                    <button onclick="shareOnWhatsApp('${order.imageUrl}')" class="share-btn">Share</button>
+                    <button onclick="deleteOrder('${doc.id}')" class="delete-btn">Delete</button>
+                </div>
+            `;
+            ordersGrid.appendChild(div);
+        });
         async function loadRecentOrders() {
             if (!currentUser) return;
         
@@ -1078,14 +1243,14 @@
         
             try {
                 const ordersRef = db.collection('orders');
-                let querySnapshot;
-                
+                const query = ordersRef
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('createdAt', 'desc')
+                    .limit(5);
+        
+                let snapshot;
                 try {
-                    querySnapshot = await ordersRef
-                        .where('userId', '==', currentUser.uid)
-                        .orderBy('createdAt', 'desc')
-                        .limit(5)
-                        .get();
+                    snapshot = await query.get();
                 } catch (indexError) {
                     if (indexError.code === 'failed-precondition') {
                         recentOrders.innerHTML = `
@@ -1098,36 +1263,30 @@
                             </div>
                         `;
                         return;
+                    } else {
+                        throw indexError;
                     }
-                    throw indexError;
                 }
         
                 recentOrders.innerHTML = '';
         
-                if (querySnapshot.empty) {
+                if (snapshot.empty) {
                     recentOrders.innerHTML = '<p class="no-orders">No recent orders found.</p>';
                     return;
                 }
         
-                querySnapshot.forEach(doc => {
+                snapshot.forEach(doc => {
                     const order = doc.data();
                     const div = document.createElement('div');
                     div.className = 'history-item';
                     div.innerHTML = `
                         <div class="history-header">
-                            <strong>${order.distributorName || 'Unnamed'}</strong>
-                            <span>${order.date || 'No date'}</span>
+                            <strong>${order.distributorName}</strong>
+                            <span>${order.date}</span>
                         </div>
                         <div class="history-details">
-                            <p>Items: ${order.items ? order.items.length : 0}</p>
-                            ${order.imageUrl ? `
-                                <img src="${order.imageUrl}" 
-                                     class="history-thumbnail" 
-                                     alt="Order" 
-                                     loading="lazy" 
-                                     crossorigin="anonymous"
-                                     onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22>Image Error</text></svg>'">
-                            ` : ''}
+                            <p>Items: ${order.items.length}</p>
+                            <img src="${order.imageUrl}" class="history-thumbnail" alt="Order" loading="lazy" crossorigin="anonymous">
                         </div>
                         <div class="action-buttons">
                             <button onclick="viewOrder('${doc.id}')" class="view-btn">View</button>
@@ -1148,140 +1307,6 @@
             }
         }
         
-        async function loadFullOrderHistory() {
-            const historyContainer = document.getElementById('fullOrderHistory');
-            historyContainer.innerHTML = '<div class="loading">Loading order history...</div>';
-        
-            try {
-                const ordersRef = db.collection('orders');
-                let querySnapshot;
-                
-                try {
-                    querySnapshot = await ordersRef
-                        .where('userId', '==', currentUser.uid)
-                        .orderBy('createdAt', 'desc')
-                        .get();
-                } catch (indexError) {
-                    if (indexError.code === 'failed-precondition') {
-                        historyContainer.innerHTML = `
-                            <div class="error-message">
-                                <p>Please create the required index first.</p>
-                                <p>Click the button below to create the index:</p>
-                                <button onclick="window.open('${indexError.message.split('here: ')[1]}', '_blank')" class="action-btn">
-                                    Create Index
-                                </button>
-                            </div>
-                        `;
-                        return;
-                    }
-                    throw indexError;
-                }
-        
-                historyContainer.innerHTML = '';
-        
-                if (querySnapshot.empty) {
-                    historyContainer.innerHTML = '<p class="no-orders">No orders found.</p>';
-                    return;
-                }
-        
-                const ordersGrid = document.createElement('div');
-                ordersGrid.className = 'orders-grid';
-        
-                querySnapshot.forEach(doc => {
-                    const order = doc.data();
-                    const div = document.createElement('div');
-                    div.className = 'history-item';
-                    div.innerHTML = `
-                        <div class="history-header">
-                            <strong>${order.distributorName || 'Unnamed'}</strong>
-                            <span>${order.date || 'No date'}</span>
-                        </div>
-                        <div class="history-details">
-                            <p>Items: ${order.items ? order.items.length : 0}</p>
-                            ${order.imageUrl ? `
-                                <img src="${order.imageUrl}" 
-                                     class="history-thumbnail" 
-                                     alt="Order" 
-                                     loading="lazy" 
-                                     crossorigin="anonymous"
-                                     onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22>Image Error</text></svg>'">
-                            ` : ''}
-                        </div>
-                        <div class="action-buttons">
-                            <button onclick="viewOrder('${doc.id}')" class="view-btn">View</button>
-                            <button onclick="shareOnWhatsApp('${order.imageUrl}')" class="share-btn">Share</button>
-                            <button onclick="deleteOrder('${doc.id}')" class="delete-btn">Delete</button>
-                        </div>
-                    `;
-                    ordersGrid.appendChild(div);
-                });
-        
-                historyContainer.appendChild(ordersGrid);
-            } catch (error) {
-                console.error('Error loading order history:', error);
-                historyContainer.innerHTML = `
-                    <div class="error-message">
-                        <p>Error loading order history. Please try again.</p>
-                        <button onclick="loadFullOrderHistory()" class="action-btn">Retry</button>
-                    </div>
-                `;
-            }
-        }
-        
-        // Add these helper functions as well
-        async function viewOrder(orderId) {
-            try {
-                const doc = await db.collection('orders').doc(orderId).get();
-                if (!doc.exists) {
-                    alert('Order not found');
-                    return;
-                }
-        
-                const order = doc.data();
-                const modal = document.createElement('div');
-                modal.className = 'modal';
-                modal.innerHTML = `
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <h2>Order Details</h2>
-                        <p><strong>Distributor:</strong> ${order.distributorName}</p>
-                        <p><strong>Date:</strong> ${order.date}</p>
-                        ${order.imageUrl ? `
-                            <img src="${order.imageUrl}" 
-                                 alt="Order" 
-                                 style="max-width: 100%; margin-top: 10px;"
-                                 crossorigin="anonymous">
-                        ` : ''}
-                    </div>
-                `;
-        
-                document.body.appendChild(modal);
-                modal.querySelector('.close').onclick = () => modal.remove();
-                modal.onclick = (e) => {
-                    if (e.target === modal) modal.remove();
-                };
-            } catch (error) {
-                console.error('Error viewing order:', error);
-                alert('Error loading order details');
-            }
-        }
-        
-        async function deleteOrder(orderId) {
-            if (!confirm('Are you sure you want to delete this order?')) return;
-        
-            try {
-                await db.collection('orders').doc(orderId).delete();
-                await loadRecentOrders();
-                await loadFullOrderHistory();
-                alert('Order deleted successfully');
-            } catch (error) {
-                console.error('Error deleting order:', error);
-                alert('Error deleting order');
-            }
-        }
-        
     </script>
-    </body>
-    </html>
-    
-
+</body>
+</html>
