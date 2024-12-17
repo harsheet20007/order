@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="img-src * 'self' data: https: http:; default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;">
+    <title>Distributor Order System</title>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background: #f4f4f4;
+            color: #333;
+        }
+
+        /* Login Page Styles */
+        #loginPage {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f8f9fa;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #34495e;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .auth-button {
+            width: 100%;
+            padding: 0.75rem;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .auth-button:hover {
+            background: #45a049;
+        }
+
+        .toggle-btn {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            color: #2196F3;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* Main App Styles */
+        #mainApp {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #fff;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .main-layout {
+            display: flex;
+            max-width: 1200px;
+            margin: 20px auto;
+            gap: 20px;
+            padding: 0 20px;
+        }
+
+        .left-panel {
+            width: 300px;
+            flex-shrink: 0;
+        }
+
+        .right-panel {
+            flex-grow: 1;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Stamp Section Styles */
+        .stamp-section {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .stamp-preview {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .stamp-preview img {
+            max-width: 200px;
+            max-height: 100px;
+            margin-bottom: 10px;
+        }
+
+        /* Column Manager Styles */
+        .column-manager {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .column-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Recent Orders Styles */
+        .recent-orders {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .history-item {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .history-thumbnail {
+            max-width: 100px;
+            height: auto;
+            margin: 10px 0;
+        }
+
+        /* Tabs Styles */
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 8px 16px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .tab-button.active {
+            background: #4CAF50;
+            color: white;
+        }
+
+        /* Order Form Styles */
+        .order-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .order-table th,
+        .order-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        .order-table th {
+            background: #f8f9fa;
+        }
+
+        .order-table input {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+        }
+
+        .view-btn {
+            background: #2196F3;
+        }
+
+        .share-btn {
+            background: #9c27b0;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error-message {
+            background: #fff3f3;
+            border: 1px solid #dc3545;
+            padding: 15px;
+            border-radius: 4px;
+            color: #dc3545;
+            margin: 10px 0;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .close {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage">
+        <div class="login-container">
+            <h2>Distributor Order System</h2>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required>
+            </div>
+            <button class="auth-button" onclick="handleAuth()">Login</button>
+            <span class="toggle-btn" onclick="toggleAuthMode()">Don't have an account? Sign up</span>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp">
+        <div class="header">
+            <div class="header-content">
+                <h1>Order Management</h1>
+                <div class="user-info">
+                    <span id="userEmail"></span>
+                    <button class="auth-button" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Stamp Section -->
+                <div class="stamp-section">
+                    <h3>Company Stamp</h3>
+                    <div id="stampUploadArea">
+                        <input type="file" id="stampUpload" accept="image/*">
+                        <button onclick="uploadStamp()">Upload Stamp</button>
+                    </div>
+                    <div id="stampPreview" class="stamp-preview hidden">
+                        <img id="currentStamp" alt="Company Stamp">
+                        <button onclick="removeStamp()">Remove Stamp</button>
+                    </div>
+                </div>
+
+                <!-- Column Manager -->
+                <div class="column-manager">
+                    <h3>Custom Columns</h3>
+                    <div id="columnList"></div>
+                    <button onclick="addNewColumn()" class="action-btn">Add Column</button>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="recent-orders">
+                    <h3>Recent Orders</h3>
+                    <div id="recentOrders"></div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <!-- Tabs -->
+                <div class="tabs-container">
+                    <button class="tab-button active" onclick="showTab('orders')">Orders</button>
+                    <button class="tab-button" onclick="showTab('history')">History</button>
+                </div>
+
+                <!-- Orders Tab -->
+                <div id="ordersTab" class="tab-content active">
+                    <div id="orderTabs" class="order-tabs"></div>
+                    <div id="orderForms"></div>
+                </div>
+
+                <!-- History Tab -->
+                <div id="historyTab" class="tab-content hidden">
+                    <div id="fullOrderHistory"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLWRCtKb1euiVCn-R11NlOfrCu91OCF6E",
+  authDomain: "students-79973.firebaseapp.com",
+  projectId: "students-79973",
+  storageBucket: "students-79973.appspot.com",
+  messagingSenderId: "471343836462",
+  appId: "1:471343836462:web:0dc82af1b92e755f411ebf",
+  measurementId: "G-9H854FWXTM",
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // Global Variables
+        let currentUser = null;
+        let userStampUrl = null;
+        let currentOrderId = 1;
+        let activeOrderId = null;
+        let customColumns = [];
+        let isLoginMode = true;
+
+        // Authentication Functions
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            const authButton = document.querySelector('.auth-button');
+            const toggleButton = document.querySelector('.toggle-btn');
+            
+            if (isLoginMode) {
+                authButton.textContent = 'Login';
+                toggleButton.textContent = "Don't have an account? Sign up";
+            } else {
+                authButton.textContent = 'Sign Up';
+                toggleButton.textContent = 'Already have an account? Login';
+            }
+        }
+
+        async function handleAuth() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                alert('Please enter both email and password');
+                return;
+            }
+
+            try {
+                if (isLoginMode) {
+                    await auth.signInWithEmailAndPassword(email, password);
+                } else {
+                    await auth.createUserWithEmailAndPassword(email, password);
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                alert(error.message);
+            }
+        }
+
+        function logout() {
+            auth.signOut().catch(error => {
+                console.error('Logout error:', error);
+                alert('Error logging out. Please try again.');
+            });
+        }
+
+        // Initialize Authentication State
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('userEmail').textContent = user.email;
+
+                try {
+                    // Load user's data
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    if (userDoc.exists) {
+                        if (userDoc.data().stampUrl) {
+                            userStampUrl = userDoc.data().stampUrl;
+                            updateStampPreview(userStampUrl);
+                        }
+                        if (userDoc.data().customColumns) {
+                            customColumns = userDoc.data().customColumns;
+                            updateColumnList();
+                        }
+                    }
+
+                    // Create first order form
+                    addNewOrder();
+                    
+                    // Load recent orders
+                    await loadRecentOrders();
+                } catch (error) {
+                    console.error('Error initializing app:', error);
+                    alert('Error loading user data. Please refresh the page.');
+                }
+            } else {
+                document.getElementById('loginPage').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+            }
+        });
+    </script>
+    <!-- Add this inside the existing <script> tag, after the auth.onAuthStateChanged function -->
+    
+    <script>
+        // Order Management Functions
+        function addNewOrder() {
+            const orderId = currentOrderId++;
+            
+            // Create tab
+            const orderTabs = document.getElementById('orderTabs');
+            if (!orderTabs) return;
+    
+            const tab = document.createElement('div');
+            tab.className = 'order-tab';
+            tab.setAttribute('data-order-id', orderId);
+            tab.innerHTML = `
+                Order #${orderId}
+                <button class="order-tab-close" onclick="closeOrder(${orderId}, event)">×</button>
+            `;
+            tab.onclick = () => switchOrder(orderId);
+            orderTabs.appendChild(tab);
+    
+            // Create order form
+            const orderForms = document.getElementById('orderForms');
+            if (!orderForms) return;
+    
+            const form = createOrderForm(orderId);
+            orderForms.appendChild(form);
+    
+            switchOrder(orderId);
+        }
+    
+        function createOrderForm(orderId) {
+            const form = document.createElement('div');
+            form.className = 'order-form hidden';
+            form.id = `order-${orderId}`;
+            form.innerHTML = `
+                <div class="form-header">
+                    <input type="text" class="distributor-name" placeholder="Enter Distributor Name" required>
+                    <input type="date" class="order-date" value="${new Date().toISOString().split('T')[0]}" required>
+                </div>
+                <table class="order-table">
+                    <thead>
+                        <tr>
+                            <th>Quantity</th>
+                            <th>Medicine Name</th>
+                            ${customColumns.map(col => `<th>${col}</th>`).join('')}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="action-buttons">
+                    <button onclick="addRow(${orderId})" class="action-btn">Add Row</button>
+                    <button onclick="generateImage(${orderId})" class="action-btn generate-btn">Generate Image</button>
+                    <button onclick="shareOrder(${orderId})" class="action-btn share-btn">Share</button>
+                </div>
+                <div class="generated-image"></div>
+            `;
+    
+            setTimeout(() => addRow(orderId), 0);
+            return form;
+        }
+    
+        function switchOrder(orderId) {
+            document.querySelectorAll('.order-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.getAttribute('data-order-id') == orderId);
+            });
+    
+            document.querySelectorAll('.order-form').forEach(form => {
+                form.classList.toggle('hidden', form.id !== `order-${orderId}`);
+            });
+    
+            activeOrderId = orderId;
+        }
+    
+        function closeOrder(orderId, event) {
+            event.stopPropagation();
+            const tabs = document.querySelectorAll('.order-tab');
+            if (tabs.length <= 1) {
+                alert('Cannot close the last order tab');
+                return;
+            }
+    
+            const tab = document.querySelector(`.order-tab[data-order-id="${orderId}"]`);
+            const form = document.getElementById(`order-${orderId}`);
+            
+            if (tab && form) {
+                const isActive = tab.classList.contains('active');
+                tab.remove();
+                form.remove();
+    
+                if (isActive) {
+                    const remainingTabs = document.querySelectorAll('.order-tab');
+                    const newOrderId = remainingTabs[0].getAttribute('data-order-id');
+                    switchOrder(parseInt(newOrderId));
+                }
+            }
+        }
+    
+        function addRow(orderId) {
+            const form = document.getElementById(`order-${orderId}`);
+            if (!form) return;
+    
+            const tbody = form.querySelector('tbody');
+            if (!tbody) return;
+    
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="number" class="quantity-input" placeholder="Qty" min="1"></td>
+                <td><input type="text" class="medicine-input" placeholder="Medicine Name"></td>
+                ${customColumns.map(() => `<td><input type="text"></td>`).join('')}
+                <td>
+                    <button onclick="deleteRow(this)" class="delete-btn">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+    
+            // Focus on the new row's quantity input
+            const quantityInput = row.querySelector('.quantity-input');
+            quantityInput.focus();
+        }
+    
+        function deleteRow(button) {
+            const tr = button.closest('tr');
+            const tbody = tr.parentElement;
+            if (tbody.children.length > 1) {
+                tr.remove();
+            } else {
+                alert('Cannot delete the last row');
+            }
+        }
+    
+        async function generateImage(orderId) {
+            const form = document.getElementById(`order-${orderId}`);
+            if (!form) return;
+    
+            const distributorName = form.querySelector('.distributor-name').value;
+            const orderDate = form.querySelector('.order-date').value;
+    
+            if (!distributorName || !orderDate) {
+                alert('Please fill in distributor name and date');
+                return;
+            }
+    
+            try {
+                const generateButton = form.querySelector('.generate-btn');
+                generateButton.textContent = 'Generating...';
+                generateButton.disabled = true;
+    
+                // Create print content
+                const printContent = document.createElement('div');
+                printContent.style.cssText = `
+                    padding: 20px;
+                    background: white;
+                    font-family: Arial, sans-serif;
+                    width: 100%;
+                    max-width: 800px;
+                    margin: 0 auto;
+                `;
+    
+                // Add header content
+                printContent.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h2 style="margin-bottom: 10px;">Order Details</h2>
+                        <p style="margin: 5px 0;"><strong>Distributor:</strong> ${distributorName}</p>
+                        <p style="margin: 5px 0;"><strong>Date:</strong> ${orderDate}</p>
+                    </div>
+                `;
+    
+                // Create and add table
+                const table = document.createElement('table');
+                table.style.cssText = `
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                `;
+    
+                // Add table header
+                const thead = document.createElement('thead');
+                thead.innerHTML = `
+                    <tr>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #f2f2f2;">Quantity</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; background: #f2f2f2;">Medicine Name</th>
+                        ${customColumns.map(col => 
+                            `<th style="border: 1px solid #ddd; padding: 8px; background: #f2f2f2;">${col}</th>`
+                        ).join('')}
+                    </tr>
+                `;
+                table.appendChild(thead);
+    
+                // Add table body
+                const tbody = document.createElement('tbody');
+                const rows = Array.from(form.querySelectorAll('tbody tr'));
+                tbody.innerHTML = rows.map(row => {
+                    const inputs = row.querySelectorAll('input');
+                    return `
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${inputs[0].value}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${inputs[1].value}</td>
+                            ${Array.from(inputs).slice(2).map(input => 
+                                `<td style="border: 1px solid #ddd; padding: 8px;">${input.value}</td>`
+                            ).join('')}
+                        </tr>
+                    `;
+                }).join('');
+                table.appendChild(tbody);
+                printContent.appendChild(table);
+    
+                // Add stamp if exists
+                if (userStampUrl) {
+                    const stampContainer = document.createElement('div');
+                    stampContainer.style.cssText = `
+                        width: 100%;
+                        display: flex;
+                        justify-content: flex-end;
+                        margin-top: 30px;
+                        padding-top: 20px;
+                        border-top: 1px solid #eee;
+                    `;
+                    
+                    const stampImg = document.createElement('img');
+                    stampImg.src = userStampUrl;
+                    stampImg.style.cssText = 'max-width: 200px; max-height: 100px;';
+                    stampImg.crossOrigin = 'anonymous';
+                    
+                    // Wait for stamp image to load
+                    await new Promise((resolve, reject) => {
+                        stampImg.onload = resolve;
+                        stampImg.onerror = reject;
+                    });
+    
+                    stampContainer.appendChild(stampImg);
+                    printContent.appendChild(stampContainer);
+                }
+    
+                document.body.appendChild(printContent);
+    
+                // Wait for all content to render
+                await new Promise(resolve => setTimeout(resolve, 500));
+    
+                const canvas = await html2canvas(printContent, {
+                    scale: 2,
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true,
+                    imageTimeout: 0,
+                    onclone: function(clonedDoc) {
+                        const images = clonedDoc.getElementsByTagName('img');
+                        for(let img of images) {
+                            img.crossOrigin = "anonymous";
+                        }
+                    }
+                });
+    
+                const imageUrl = canvas.toDataURL('image/png');
+    
+                // Upload to Firebase Storage
+                const storageRef = storage.ref(`orders/${currentUser.uid}/${Date.now()}.png`);
+                const uploadTask = await storageRef.putString(imageUrl.split(',')[1], 'base64');
+                const downloadUrl = await uploadTask.ref.getDownloadURL();
+    
+                // Display generated image
+                form.querySelector('.generated-image').innerHTML = `
+                    <img src="${downloadUrl}" alt="Generated Order" style="max-width: 100%; margin-top: 20px;" crossorigin="anonymous">
+                `;
+    
+                // Save to Firebase
+                await saveOrderToFirebase(orderId, distributorName, orderDate, downloadUrl);
+    
+            } catch (error) {
+                console.error('Error generating image:', error);
+                alert('Error generating image. Please try again.');
+            } finally {
+                const generateButton = form.querySelector('.generate-btn');
+                generateButton.textContent = 'Generate Image';
+                generateButton.disabled = false;
+                document.body.removeChild(document.body.lastChild);
+            }
+        }
+    </script>
+    <!-- Add this inside the existing <script> tag, after the previous functions -->
+    
+    <script>
+        // Firebase Operations
+        async function saveOrderToFirebase(orderId, distributorName, date, imageUrl) {
+            try {
+                const form = document.getElementById(`order-${orderId}`);
+                const items = Array.from(form.querySelectorAll('tbody tr')).map(row => {
+                    const inputs = row.querySelectorAll('input');
+                    const item = {
+                        quantity: inputs[0].value,
+                        medicineName: inputs[1].value
+                    };
+                    
+                    customColumns.forEach((col, index) => {
+                        item[col] = inputs[index + 2].value;
+                    });
+                    
+                    return item;
+                });
+    
+                await db.collection('orders').add({
+                    userId: currentUser.uid,
+                    distributorName,
+                    date,
+                    items,
+                    imageUrl,
+                    customColumns,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+    
+                await loadRecentOrders();
+                alert('Order saved successfully!');
+            } catch (error) {
+                console.error('Error saving order:', error);
+                alert('Error saving order: ' + error.message);
+            }
+        }
+    
+        // Stamp Management
+        async function uploadStamp() {
+            const fileInput = document.getElementById('stampUpload');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file first');
+                return;
+            }
+    
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
+    
+            try {
+                const storageRef = storage.ref(`stamps/${currentUser.uid}/stamp.png`);
+                await storageRef.put(file);
+                const downloadUrl = await storageRef.getDownloadURL();
+    
+                await db.collection('users').doc(currentUser.uid).set({
+                    stampUrl: downloadUrl
+                }, { merge: true });
+    
+                userStampUrl = downloadUrl;
+                updateStampPreview(downloadUrl);
+                alert('Stamp uploaded successfully!');
+            } catch (error) {
+                console.error('Error uploading stamp:', error);
+                alert('Error uploading stamp. Please try again.');
+            }
+        }
+    
+        async function removeStamp() {
+            if (!confirm('Are you sure you want to remove the stamp?')) return;
+    
+            try {
+                const storageRef = storage.ref(`stamps/${currentUser.uid}/stamp.png`);
+                await storageRef.delete();
+    
+                await db.collection('users').doc(currentUser.uid).update({
+                    stampUrl: firebase.firestore.FieldValue.delete()
+                });
+    
+                userStampUrl = null;
+                updateStampPreview(null);
+                alert('Stamp removed successfully!');
+            } catch (error) {
+                console.error('Error removing stamp:', error);
+                alert('Error removing stamp. Please try again.');
+            }
+        }
+    
+        function updateStampPreview(url) {
+            const preview = document.getElementById('stampPreview');
+            const uploadArea = document.getElementById('stampUploadArea');
+            
+            if (url) {
+                document.getElementById('currentStamp').src = url;
+                preview.classList.remove('hidden');
+                uploadArea.classList.add('hidden');
+            } else {
+                preview.classList.add('hidden');
+                uploadArea.classList.remove('hidden');
+            }
+        }
+    
+        // Custom Columns Management
+        function addNewColumn() {
+            const columnName = prompt('Enter column name:');
+            if (!columnName) return;
+    
+            if (customColumns.includes(columnName)) {
+                alert('Column already exists');
+                return;
+            }
+    
+            customColumns.push(columnName);
+            updateColumnList();
+            saveCustomColumns();
+        }
+    
+        function removeColumn(columnName) {
+            if (!confirm(`Are you sure you want to remove the column "${columnName}"?`)) return;
+    
+            const index = customColumns.indexOf(columnName);
+            if (index > -1) {
+                customColumns.splice(index, 1);
+                updateColumnList();
+                saveCustomColumns();
+            }
+        }
+    
+        function updateColumnList() {
+            const columnList = document.getElementById('columnList');
+            columnList.innerHTML = customColumns.map(col => `
+                <div class="column-item">
+                    <span>${col}</span>
+                    <button onclick="removeColumn('${col}')" class="delete-btn">Remove</button>
+                </div>
+            `).join('');
+    
+            // Update all order forms
+            document.querySelectorAll('.order-form').forEach(form => {
+                const headerRow = form.querySelector('thead tr');
+                const rows = form.querySelectorAll('tbody tr');
+                
+                // Update header
+                headerRow.innerHTML = `
+                    <th>Quantity</th>
+                    <th>Medicine Name</th>
+                    ${customColumns.map(col => `<th>${col}</th>`).join('')}
+                    <th>Actions</th>
+                `;
+    
+                // Update rows
+                rows.forEach(row => {
+                    const cells = Array.from(row.cells);
+                    const quantity = cells[0].innerHTML;
+                    const medicine = cells[1].innerHTML;
+                    const actions = cells[cells.length - 1].innerHTML;
+    
+                    row.innerHTML = `
+                        ${quantity}
+                        ${medicine}
+                        ${customColumns.map(() => `<td><input type="text"></td>`).join('')}
+                        ${actions}
+                    `;
+                });
+            });
+        }
+    
+        async function saveCustomColumns() {
+            try {
+                await db.collection('users').doc(currentUser.uid).set({
+                    customColumns: customColumns
+                }, { merge: true });
+            } catch (error) {
+                console.error('Error saving custom columns:', error);
+                alert('Error saving custom columns. Please try again.');
+            }
+        }
+    
+        // Tab Management
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('onclick').includes(tabName));
+            });
+    
+            document.getElementById('ordersTab').classList.toggle('hidden', tabName !== 'orders');
+            document.getElementById('historyTab').classList.toggle('hidden', tabName !== 'history');
+    
+            if (tabName === 'history') {
+                loadFullOrderHistory();
+            }
+        }
+    
+        // Sharing Functions
+        function shareOrder(orderId) {
+            const form = document.getElementById(`order-${orderId}`);
+            const imageUrl = form.querySelector('.generated-image img')?.src;
+            
+            if (imageUrl) {
+                shareOnWhatsApp(imageUrl);
+            } else {
+                alert('Please generate the image first');
+            }
+        }
+    
+        function shareOnWhatsApp(imageUrl) {
+            const text = `Please check the order: ${imageUrl}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+        }
+    
+        // Add floating button for new orders
+        const floatingButton = document.createElement('button');
+        floatingButton.className = 'floating-button';
+        floatingButton.innerHTML = '+';
+        floatingButton.onclick = addNewOrder;
+        document.body.appendChild(floatingButton);
+    
+        // Additional styles for floating button
+        const additionalStyles = `
+            .floating-button {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                background: #4CAF50;
+                color: white;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: transform 0.2s;
+            }
+    
+            .floating-button:hover {
+                transform: scale(1.1);
+                background: #45a049;
+            }
+        `;
+    
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = additionalStyles;
+        document.head.appendChild(styleSheet);
+    
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Any additional initialization code can go here
+        });
+        // Add these functions in your <script> tag
+        
+        async function loadRecentOrders() {
+            if (!currentUser) return;
+        
+            const recentOrders = document.getElementById('recentOrders');
+            recentOrders.innerHTML = '<div class="loading">Loading recent orders...</div>';
+        
+            try {
+                const ordersRef = db.collection('orders');
+                let querySnapshot;
+                
+                try {
+                    querySnapshot = await ordersRef
+                        .where('userId', '==', currentUser.uid)
+                        .orderBy('createdAt', 'desc')
+                        .limit(5)
+                        .get();
+                } catch (indexError) {
+                    if (indexError.code === 'failed-precondition') {
+                        recentOrders.innerHTML = `
+                            <div class="error-message">
+                                <p>Please create the required index first.</p>
+                                <p>Click the button below to create the index:</p>
+                                <button onclick="window.open('${indexError.message.split('here: ')[1]}', '_blank')" class="action-btn">
+                                    Create Index
+                                </button>
+                            </div>
+                        `;
+                        return;
+                    }
+                    throw indexError;
+                }
+        
+                recentOrders.innerHTML = '';
+        
+                if (querySnapshot.empty) {
+                    recentOrders.innerHTML = '<p class="no-orders">No recent orders found.</p>';
+                    return;
+                }
+        
+                querySnapshot.forEach(doc => {
+                    const order = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.innerHTML = `
+                        <div class="history-header">
+                            <strong>${order.distributorName || 'Unnamed'}</strong>
+                            <span>${order.date || 'No date'}</span>
+                        </div>
+                        <div class="history-details">
+                            <p>Items: ${order.items ? order.items.length : 0}</p>
+                            ${order.imageUrl ? `
+                                <img src="${order.imageUrl}" 
+                                     class="history-thumbnail" 
+                                     alt="Order" 
+                                     loading="lazy" 
+                                     crossorigin="anonymous"
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22>Image Error</text></svg>'">
+                            ` : ''}
+                        </div>
+                        <div class="action-buttons">
+                            <button onclick="viewOrder('${doc.id}')" class="view-btn">View</button>
+                            <button onclick="shareOnWhatsApp('${order.imageUrl}')" class="share-btn">Share</button>
+                            <button onclick="deleteOrder('${doc.id}')" class="delete-btn">Delete</button>
+                        </div>
+                    `;
+                    recentOrders.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error loading recent orders:', error);
+                recentOrders.innerHTML = `
+                    <div class="error-message">
+                        <p>Error loading orders. Please try again.</p>
+                        <button onclick="loadRecentOrders()" class="action-btn">Retry</button>
+                    </div>
+                `;
+            }
+        }
+        
+        async function loadFullOrderHistory() {
+            const historyContainer = document.getElementById('fullOrderHistory');
+            historyContainer.innerHTML = '<div class="loading">Loading order history...</div>';
+        
+            try {
+                const ordersRef = db.collection('orders');
+                let querySnapshot;
+                
+                try {
+                    querySnapshot = await ordersRef
+                        .where('userId', '==', currentUser.uid)
+                        .orderBy('createdAt', 'desc')
+                        .get();
+                } catch (indexError) {
+                    if (indexError.code === 'failed-precondition') {
+                        historyContainer.innerHTML = `
+                            <div class="error-message">
+                                <p>Please create the required index first.</p>
+                                <p>Click the button below to create the index:</p>
+                                <button onclick="window.open('${indexError.message.split('here: ')[1]}', '_blank')" class="action-btn">
+                                    Create Index
+                                </button>
+                            </div>
+                        `;
+                        return;
+                    }
+                    throw indexError;
+                }
+        
+                historyContainer.innerHTML = '';
+        
+                if (querySnapshot.empty) {
+                    historyContainer.innerHTML = '<p class="no-orders">No orders found.</p>';
+                    return;
+                }
+        
+                const ordersGrid = document.createElement('div');
+                ordersGrid.className = 'orders-grid';
+        
+                querySnapshot.forEach(doc => {
+                    const order = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.innerHTML = `
+                        <div class="history-header">
+                            <strong>${order.distributorName || 'Unnamed'}</strong>
+                            <span>${order.date || 'No date'}</span>
+                        </div>
+                        <div class="history-details">
+                            <p>Items: ${order.items ? order.items.length : 0}</p>
+                            ${order.imageUrl ? `
+                                <img src="${order.imageUrl}" 
+                                     class="history-thumbnail" 
+                                     alt="Order" 
+                                     loading="lazy" 
+                                     crossorigin="anonymous"
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22>Image Error</text></svg>'">
+                            ` : ''}
+                        </div>
+                        <div class="action-buttons">
+                            <button onclick="viewOrder('${doc.id}')" class="view-btn">View</button>
+                            <button onclick="shareOnWhatsApp('${order.imageUrl}')" class="share-btn">Share</button>
+                            <button onclick="deleteOrder('${doc.id}')" class="delete-btn">Delete</button>
+                        </div>
+                    `;
+                    ordersGrid.appendChild(div);
+                });
+        
+                historyContainer.appendChild(ordersGrid);
+            } catch (error) {
+                console.error('Error loading order history:', error);
+                historyContainer.innerHTML = `
+                    <div class="error-message">
+                        <p>Error loading order history. Please try again.</p>
+                        <button onclick="loadFullOrderHistory()" class="action-btn">Retry</button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Add these helper functions as well
+        async function viewOrder(orderId) {
+            try {
+                const doc = await db.collection('orders').doc(orderId).get();
+                if (!doc.exists) {
+                    alert('Order not found');
+                    return;
+                }
+        
+                const order = doc.data();
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2>Order Details</h2>
+                        <p><strong>Distributor:</strong> ${order.distributorName}</p>
+                        <p><strong>Date:</strong> ${order.date}</p>
+                        ${order.imageUrl ? `
+                            <img src="${order.imageUrl}" 
+                                 alt="Order" 
+                                 style="max-width: 100%; margin-top: 10px;"
+                                 crossorigin="anonymous">
+                        ` : ''}
+                    </div>
+                `;
+        
+                document.body.appendChild(modal);
+                modal.querySelector('.close').onclick = () => modal.remove();
+                modal.onclick = (e) => {
+                    if (e.target === modal) modal.remove();
+                };
+            } catch (error) {
+                console.error('Error viewing order:', error);
+                alert('Error loading order details');
+            }
+        }
+        
+        async function deleteOrder(orderId) {
+            if (!confirm('Are you sure you want to delete this order?')) return;
+        
+            try {
+                await db.collection('orders').doc(orderId).delete();
+                await loadRecentOrders();
+                await loadFullOrderHistory();
+                alert('Order deleted successfully');
+            } catch (error) {
+                console.error('Error deleting order:', error);
+                alert('Error deleting order');
+            }
+        }
+        
+    </script>
+    </body>
+    </html>
+    
+
